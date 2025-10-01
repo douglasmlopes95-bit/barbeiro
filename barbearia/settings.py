@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 # -----------------------
@@ -9,9 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -----------------------
 # Segurança
 # -----------------------
-SECRET_KEY = os.environ.get('SECRET_KEY', 'troque-essa-chave-por-uma-secreta')  # Pegando do ambiente
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')  # Defina no Render, ex: "barbeiro-3wft.onrender.com"
+SECRET_KEY = 'troque-essa-chave-por-uma-secreta-muito-forte'  # Substitua por uma chave real
+DEBUG = False
+ALLOWED_HOSTS = ['barbeiro-3wft.onrender.com']  # URL do seu serviço no Render
 
 # -----------------------
 # Aplicativos instalados
@@ -53,12 +52,12 @@ ROOT_URLCONF = 'barbearia.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Diretório global de templates
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',  # Necessário para login/logout
+                'django.template.context_processors.request', 
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -76,7 +75,7 @@ WSGI_APPLICATION = 'barbearia.wsgi.application'
 # -----------------------
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',  # Fácil de começar, Render aceita
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
@@ -85,7 +84,7 @@ DATABASES = {
 # Validação de senhas
 # -----------------------
 AUTH_PASSWORD_VALIDATORS = [
-    # Ative em produção para segurança
+    # Ative em produção para maior segurança
     # {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     # {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     # {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
@@ -106,10 +105,10 @@ USE_TZ = True
 # -----------------------
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"  # Para coleta em produção
+STATIC_ROOT = BASE_DIR / "staticfiles"  # Coleta para produção
 
 # -----------------------
-# Arquivos de mídia (upload de imagens, logos, etc.)
+# Arquivos de mídia
 # -----------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
