@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4 text-center">Meus Serviços</h1>
+    <p>
+        <a href="{% url 'agenda:adicionar_servico' %}" class="btn btn-primary">Adicionar Serviço</a>
+    </p>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Preço (R$)</th>
+                <th>Duração (min)</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in servicos %}
+            <tr>
+                <td>{{ s.nome }}</td>
+                <td>{{ s.preco }}</td>
+                <td>{{ s.duracao }}</td>
+                <td>
+                    <a href="{% url 'agenda:editar_servico' s.id %}" class="btn btn-sm btn-warning">Editar</a>
+                    <a href="{% url 'agenda:remover_servico' s.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Deseja remover este serviço?');">Remover</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">Nenhum serviço cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

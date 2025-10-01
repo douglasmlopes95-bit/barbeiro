@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+
+  <!-- Informações da Barbearia -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body text-center">
+      {% if barbearia.logo %}
+        <img src="{{ barbearia.logo.url }}" alt="{{ barbearia.nome }}" class="rounded mb-3" style="height:120px; width:auto;">
+      {% else %}
+        <img src="{% static 'images/logo_placeholder.png' %}" alt="Sem logo" class="rounded mb-3" style="height:120px; width:auto;">
+      {% endif %}
+      <h2 class="card-title fw-bold">{{ barbearia.nome }}</h2>
+      <p class="card-text">{{ barbearia.descricao|default:"Barbearia de excelência." }}</p>
+      {% if barbearia.endereco %}
+        <p><strong>📍 Endereço:</strong> {{ barbearia.endereco }}</p>
+      {% endif %}
+      {% if barbearia.telefone %}
+        <p><strong>📞 Telefone:</strong> {{ barbearia.telefone }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Lista de Barbeiros -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-dark text-white">
+      <h4 class="mb-0">💈 Nossos Barbeiros</h4>
+    </div>
+    <ul class="list-group list-group-flush">
+      {% for barbeiro in barbeiros %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>
+              {% if barbeiro.first_name or barbeiro.last_name %}
+                {{ barbeiro.first_name }} {{ barbeiro.last_name }}
+              {% else %}
+                {{ barbeiro.username }}
+              {% endif %}
+            </strong><br>
+            {% if barbeiro.apelido %}
+              <small class="text-muted">Apelido: {{ barbeiro.apelido }}</small><br>
+            {% endif %}
+          </div>
+
+          {% if user.is_authenticated and user.tipo == "cliente" %}
+            <button class="btn btn-primary btn-sm btn-agendar" 
+                    data-id="{{ barbeiro.id }}" 
+                    data-nome="{% if barbeiro.apelido %}{{ barbeiro.apelido }}{% elif barbeiro.first_name %}{{ barbeiro.first_name }}{% else %}{{ barbeiro.username }}{% endif %}">
+              Agendar
+            </button>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li class="list-group-item text-center text-muted">
+          Nenhum barbeiro cadastrado ainda.
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Formulário de Agendamento -->
+  <div id="agendamento-form-container" class="card shadow-sm mb-4" style="display:none;">
+    <div class="card-body">
+      <h4 class="card-title mb-3">Agendamento</h4>
+      <form id="agendamento-form" method="post" action="{% url 'agenda:agenda_cliente' %}">
+        {% csrf_token %}
+        <input type="hidden" name="barbeiro" id="form-barbeiro">
+        <input type="hidden" name="barbearia" value="{{ barbearia.id }}">
+        
+        <div class="mb-3">
+          <label for="servico-select" class="form-label">Serviço</label>
+          <select name="servico" id="servico-select" class="form-select" required>
+            <option value="">Selecione um serviço</option>
+            {% for s in servicos %}
+              <option value="{{ s.id }}" data-barbeiro="{{ s.barbeiro.id }}">
+                {{ s.nome }} - R$ {{ s.preco|floatformat:2 }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="form-data" class="form-label">Data</label>
+          <input type="date" id="form-data" name="data" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="form-hora" class="form-label">Hora</label>
+          <select name="hora" id="form-hora" class="form-select" required>
+            <option value="">Escolha a hora</option>
+          </select>
+        </div>
+
+        <p>Barbeiro: <strong id="selected-barbeiro"></strong></p>
+        <button type="submit" class="btn btn-success btn-lg">Confirmar Agendamento</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const agendarBtns = document.querySelectorAll('.btn-agendar');
+  const formContainer = document.getElementById('agendamento-form-container');
+  const formBarbeiro = document.getElementById('form-barbeiro');
+  const selectedBarbeiroElem = document.getElementById('selected-barbeiro');
+  const servicoSelect = document.getElementById('servico-select');
+  const horaSelect = document.getElementById('form-hora');
+  const dataInput = document.getElementById('form-data');
+
+  function fetchHorarios(barbeiroId, dia) {
+    if(!barbeiroId || !dia) return;
+    fetch(`{% url 'agenda:horarios_disponiveis' %}?barbeiro=${barbeiroId}&dia=${dia}&servico=${servicoSelect.value}`)
+      .then(res => res.json())
+      .then(data => {
+        horaSelect.innerHTML = '<option value="">Escolha a hora</option>';
+        data.horarios.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h;
+          opt.textContent = h;
+          horaSelect.appendChild(opt);
+        });
+      });
+  }
+
+  agendarBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const barbeiroId = btn.dataset.id;
+      const barbeiroNome = btn.dataset.nome;
+
+      formBarbeiro.value = barbeiroId;
+      selectedBarbeiroElem.textContent = barbeiroNome;
+
+      // Filtra serviços do barbeiro
+      Array.from(servicoSelect.options).forEach(opt => {
+        if(!opt.value) return;
+        opt.style.display = (opt.dataset.barbeiro === barbeiroId) ? '' : 'none';
+      });
+
+      horaSelect.innerHTML = '<option value="">Escolha a hora</option>';
+      dataInput.value = '';
+      formContainer.style.display = 'block';
+    });
+  });
+
+  // Atualiza horários quando data ou serviço mudar
+  dataInput.addEventListener('change', () => {
+    fetchHorarios(formBarbeiro.value, dataInput.value);
+  });
+  servicoSelect.addEventListener('change', () => {
+    fetchHorarios(formBarbeiro.value, dataInput.value);
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,43 @@
+<!-- templates/cancelar_agendamento.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4 text-danger">Cancelar Agendamento</h2>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <p class="mb-3">Tem certeza de que deseja cancelar este agendamento?</p>
+
+      <ul class="list-group mb-3">
+        <li class="list-group-item">
+          <strong>Cliente:</strong> {{ agendamento.cliente.username }}
+        </li>
+        <li class="list-group-item">
+          <strong>Barbeiro:</strong> {{ agendamento.barbeiro.username }}
+        </li>
+        <li class="list-group-item">
+          <strong>Serviço:</strong> {{ agendamento.servico.nome }} - 
+          R$ {{ agendamento.servico.preco|floatformat:2 }}
+        </li>
+        <li class="list-group-item">
+          <strong>Data:</strong> {{ agendamento.data|date:"d/m/Y H:i" }}
+        </li>
+      </ul>
+
+      <form method="post" class="d-flex gap-2">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Cancelar</button>
+
+        {% if user.tipo == "cliente" %}
+          <a href="{% url 'agenda_cliente' %}" class="btn btn-secondary">Voltar</a>
+        {% elif user.tipo == "barbeiro" %}
+          <a href="{% url 'dashboard_barbeiro' %}" class="btn btn-secondary">Voltar</a>
+        {% else %}
+          <a href="/" class="btn btn-secondary">Voltar</a>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h1 class="mb-4 text-center">Dashboard Super Admin</h1>
+
+  <!-- Filtros -->
+  <div class="d-flex justify-content-end mb-3">
+    <form method="get" class="d-flex align-items-center gap-2">
+      <label for="filtro">Filtrar por:</label>
+      <select name="filtro" id="filtro" class="form-select" onchange="this.form.submit()">
+        <option value="total" {% if filtro == 'total' %}selected{% endif %}>Total</option>
+        <option value="mes" {% if filtro == 'mes' %}selected{% endif %}>Mês</option>
+        <option value="dia" {% if filtro == 'dia' %}selected{% endif %}>Dia</option>
+      </select>
+    </form>
+  </div>
+
+  <!-- Estatísticas gerais -->
+  <div class="row mb-4">
+    <div class="col-lg-3 mb-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-header bg-primary text-white">Agendamentos</div>
+        <div class="card-body fs-4">{{ total_agendamentos }}</div>
+      </div>
+    </div>
+    <div class="col-lg-3 mb-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-header bg-success text-white">Clientes</div>
+        <div class="card-body fs-4">{{ total_clientes }}</div>
+      </div>
+    </div>
+    <div class="col-lg-3 mb-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-header bg-warning text-dark">Barbeiros</div>
+        <div class="card-body fs-4">{{ total_barbeiros }}</div>
+      </div>
+    </div>
+    <div class="col-lg-3 mb-3">
+      <div class="card text-center shadow-sm">
+        <div class="card-header bg-info text-white">Faturamento Total</div>
+        <div class="card-body fs-4 text-success">R$ {{ total_faturamento|floatformat:2 }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cadastro rápido e Top 5 Barbearias -->
+  <div class="row mb-4">
+    <div class="col-lg-4 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">Cadastro Rápido</div>
+        <div class="card-body d-flex flex-column gap-2">
+          <a href="{% url 'agenda:criar_barbearia' %}" class="btn btn-outline-primary w-100">Cadastrar Barbearia</a>
+          <a href="{% url 'agenda:adicionar_barbeiro' %}" class="btn btn-outline-primary w-100">Cadastrar Barbeiro</a>
+          <a href="{% url 'agenda:registro_cliente' %}" class="btn btn-outline-primary w-100">Cadastrar Cliente</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">Top 5 Barbearias</div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            {% for b in top5 %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              {{ b.barbearia.nome }}
+              <span class="badge bg-success rounded-pill">R$ {{ b.total|floatformat:2 }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">Faturamento por Barbearia</div>
+        <div class="card-body">
+          <canvas id="graficoFaturamento"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">Clientes por Barbearia</div>
+        <div class="card-body">
+          <canvas id="graficoClientes"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const faturamentoData = {
+    labels: {{ faturamento_labels|safe }},
+    datasets: [{
+      label: 'Faturamento (R$)',
+      data: {{ faturamento_values|safe }},
+      backgroundColor: 'rgba(54, 162, 235, 0.6)',
+      borderColor: 'rgba(54, 162, 235, 1)',
+      borderWidth: 1
+    }]
+  };
+
+  const clientesData = {
+    labels: {{ clientes_labels|safe }},
+    datasets: [{
+      label: 'Clientes',
+      data: {{ clientes_values|safe }},
+      backgroundColor: 'rgba(255, 206, 86, 0.6)',
+      borderColor: 'rgba(255, 206, 86, 1)',
+      borderWidth: 1
+    }]
+  };
+
+  new Chart(document.getElementById('graficoFaturamento'), {
+    type: 'bar',
+    data: faturamentoData,
+    options: { responsive: true, plugins: { legend: { display: false } } }
+  });
+
+  new Chart(document.getElementById('graficoClientes'), {
+    type: 'bar',
+    data: clientesData,
+    options: { responsive: true, plugins: { legend: { display: false } } }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container my-5">
+  <h2 class="text-center mb-4">Meus Agendamentos</h2>
+
+  {% if error %}
+    <div class="alert alert-danger text-center">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% if agendamentos %}
+        <ul class="list-group">
+          {% for a in agendamentos %}
+            {% if a.status == "ativo" %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{{ a.data|date:"d/m/Y H:i" }}</strong><br>
+                  com <span class="text-primary">
+                    {% if a.barbeiro.apelido %}{{ a.barbeiro.apelido }}
+                    {% elif a.barbeiro.first_name %}{{ a.barbeiro.first_name }}
+                    {% else %}{{ a.barbeiro.username }}
+                    {% endif %}
+                  </span><br>
+                  Serviço: {% if a.servico %}{{ a.servico.nome }}{% else %}<em>Serviço não definido</em>{% endif %}<br>
+                  Barbearia: <strong>{{ a.barbeiro.barbearia.nome }}</strong>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  {% if a.barbeiro.barbearia.telefone %}
+                    <a href="https://wa.me/+55{{ a.barbeiro.barbearia.telefone|limpar_telefone }}"
+                       target="_blank" class="btn btn-success btn-sm" title="WhatsApp">
+                      <img src="{% static 'images/whatsapp-logo.jpg' %}" alt="WhatsApp" style="height:20px;">
+                    </a>
+                  {% endif %}
+                  <a href="{% url 'agenda:cancelar_agendamento' a.id %}" class="btn btn-danger btn-sm"
+                     onclick="return confirm('Deseja realmente cancelar este agendamento?');">
+                    Cancelar
+                  </a>
+                </div>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted text-center">Nenhum agendamento ainda.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
